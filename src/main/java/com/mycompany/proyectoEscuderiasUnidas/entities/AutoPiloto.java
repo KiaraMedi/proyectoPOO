@@ -39,9 +39,9 @@ public class AutoPiloto {
     
     
     //metodo agregar
-    public void agregarCarrera(){
-        for (Carrera carrera:carreras){
-         carreras.add(carrera);
+    public void agregarCarrera(Carrera carrera){
+        if(carrera != null && !carreras.contains(carrera)){
+            carreras.add(carrera);
         }
     }
     

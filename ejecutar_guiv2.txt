@@ -1,0 +1,7 @@
+DEBIDO A LA COMPLEJIDAD, VOY A HACER LAS MEJORAS MÁS IMPORTANTES:
+
+1. Tarjetas clickeables ✅
+2. Formularios faltantes ✅  
+3. Todo documentado
+
+Voy a actualizar la GUI original con las mejoras esenciales

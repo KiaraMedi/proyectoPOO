@@ -1,5 +1,5 @@
 
-package com.mycompany.proyectoEscuderiasUnidas;
+package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
 public class Registros { //clase para gestionar registros
     private ArrayList<Auto> autos;

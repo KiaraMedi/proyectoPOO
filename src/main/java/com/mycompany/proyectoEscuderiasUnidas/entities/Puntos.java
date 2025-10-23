@@ -1,5 +1,5 @@
 
-package com.mycompany.proyectoEscuderiasUnidas;
+package com.mycompany.proyectoEscuderiasUnidas.entities;
 
 public enum Puntos {
     

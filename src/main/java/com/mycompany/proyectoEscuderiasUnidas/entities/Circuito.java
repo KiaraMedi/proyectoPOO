@@ -1,5 +1,5 @@
 
-package com.mycompany.proyectoEscuderiasUnidas;
+package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
 public class Circuito {
    private String nombre; 

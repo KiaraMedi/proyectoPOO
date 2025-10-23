@@ -4,7 +4,9 @@
  */
 package com.mycompany.proyectoEscuderiasUnidas;
 
-public class NewClass {
+import com.mycompany.proyectoEscuderiasUnidas.entities.*;
+
+public class ProyectoPOO {
    public static void Main (String [] args){ 
      
    }

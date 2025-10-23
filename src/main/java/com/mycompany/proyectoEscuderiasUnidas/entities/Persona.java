@@ -1,4 +1,4 @@
-package com.mycompany.proyectoEscuderiasUnidas;
+package com.mycompany.proyectoEscuderiasUnidas.entities;
 
 public class Persona {
      private String dni;

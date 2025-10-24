@@ -1,7 +1,8 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
-public class Registros { //clase para gestionar registros
+import java.io.Serializable;
+public class Registros implements Serializable { //clase para gestionar registros
     private ArrayList<Auto> autos;
     private ArrayList<Mecanico> mecanicos;
     private ArrayList<Piloto> pilotos;

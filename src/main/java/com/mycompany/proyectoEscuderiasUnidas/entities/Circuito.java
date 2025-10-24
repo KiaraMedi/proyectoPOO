@@ -1,7 +1,8 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
-public class Circuito {
+import java.io.Serializable;
+public class Circuito implements Serializable {
    private String nombre; 
    private int longitud;
    private Pais pais;

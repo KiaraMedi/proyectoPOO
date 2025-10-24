@@ -1,11 +1,14 @@
 package com.mycompany.proyectoEscuderiasUnidas.gui;
 
 import com.mycompany.proyectoEscuderiasUnidas.entities.*;
+import com.mycompany.proyectoEscuderiasUnidas.persistence.DataPersistence;
+import com.mycompany.proyectoEscuderiasUnidas.gui.dialogos.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.io.IOException;
 
 /**
  * Interfaz Gráfica Principal del Sistema de Gestión F1
@@ -43,7 +46,10 @@ public class SistemaF1GUI extends JFrame {
         // Agregar pestañas
         tabbedPane.addTab("Inicio", crearPanelInicio());
         tabbedPane.addTab("Pilotos", crearPanelPilotos());
+        tabbedPane.addTab("Escuderias", crearPanelEscuderias());
         tabbedPane.addTab("Autos", crearPanelAutos());
+        tabbedPane.addTab("Mecanicos", crearPanelMecanicos());
+        tabbedPane.addTab("Circuitos", crearPanelCircuitos());
         tabbedPane.addTab("Carreras", crearPanelCarreras());
         tabbedPane.addTab("Resultados", crearPanelResultados());
         tabbedPane.addTab("Ranking", crearPanelRanking());
@@ -61,7 +67,29 @@ public class SistemaF1GUI extends JFrame {
     }
 
     private void inicializarDatos() {
-        // Crear países
+        // Intentar cargar datos guardados
+        if (DataPersistence.existenDatos()) {
+            try {
+                paises = DataPersistence.cargarPaises();
+                escuderias = DataPersistence.cargarEscuderias();
+                pilotos = DataPersistence.cargarPilotos();
+                autos = DataPersistence.cargarAutos();
+                circuitos = DataPersistence.cargarCircuitos();
+                carreras = DataPersistence.cargarCarreras();
+                mecanicos = DataPersistence.cargarMecanicos();
+
+                sistema = new Registros(autos, mecanicos, pilotos, circuitos, escuderias, paises);
+                System.out.println("Datos cargados exitosamente desde archivo");
+                return;
+            } catch (Exception e) {
+                System.out.println("Error al cargar datos: " + e.getMessage());
+                JOptionPane.showMessageDialog(null,
+                    "No se pudieron cargar los datos guardados.\nSe inicializarán datos por defecto.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        // Si no hay datos guardados o hubo error, crear datos por defecto
         paises = new ArrayList<>();
         paises.add(new Pais(1, "Argentina"));
         paises.add(new Pais(2, "Brasil"));
@@ -140,21 +168,55 @@ public class SistemaF1GUI extends JFrame {
 
         panel.add(panelCentral, BorderLayout.CENTER);
 
-        // Panel inferior con información
+        // Panel inferior con botones y información
+        JPanel panelInferior = new JPanel(new BorderLayout());
+
+        // Botones de persistencia
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        JButton btnGuardar = new JButton("[Guardar] Guardar Datos");
+        JButton btnCargar = new JButton("[Recargar] Recargar Datos");
+
+        btnGuardar.setFont(new Font("Arial", Font.BOLD, 14));
+        btnCargar.setFont(new Font("Arial", Font.BOLD, 14));
+
+        btnGuardar.addActionListener(e -> guardarDatos());
+        btnCargar.addActionListener(e -> recargarDatos());
+
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnCargar);
+        panelInferior.add(panelBotones, BorderLayout.NORTH);
+
+        // Información
         JPanel panelInfo = new JPanel();
-        panelInfo.add(new JLabel("Versión 1.0 - Sistema desarrollado para gestión de competencias de Fórmula 1"));
-        panel.add(panelInfo, BorderLayout.SOUTH);
+        panelInfo.add(new JLabel("v2.1 - Haz click en las tarjetas para navegar | Datos se guardan automáticamente"));
+        panelInferior.add(panelInfo, BorderLayout.SOUTH);
+
+        panel.add(panelInferior, BorderLayout.SOUTH);
 
         return panel;
     }
 
     private JPanel crearTarjetaEstadistica(String titulo, String valor, Color color) {
+        final int pestanaIndex;
+
+        // Mapear título a índice de pestaña
+        switch(titulo) {
+            case "Pilotos Registrados": pestanaIndex = 1; break;
+            case "Escuderías": pestanaIndex = 2; break;
+            case "Autos": pestanaIndex = 3; break;
+            case "Mecánicos": pestanaIndex = 4; break;
+            case "Circuitos": pestanaIndex = 5; break;
+            case "Carreras": pestanaIndex = 6; break;
+            default: pestanaIndex = 0;
+        }
+
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(color);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.DARK_GRAY, 1),
+            BorderFactory.createLineBorder(Color.DARK_GRAY, 2),
             BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
+        panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 14));
@@ -166,6 +228,30 @@ public class SistemaF1GUI extends JFrame {
 
         panel.add(lblTitulo, BorderLayout.NORTH);
         panel.add(lblValor, BorderLayout.CENTER);
+
+        // Hacer clickeable
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                tabbedPane.setSelectedIndex(pestanaIndex);
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                panel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.YELLOW, 3),
+                    BorderFactory.createEmptyBorder(14, 14, 14, 14)
+                ));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                panel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.DARK_GRAY, 2),
+                    BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                ));
+            }
+        });
 
         return panel;
     }
@@ -284,7 +370,7 @@ public class SistemaF1GUI extends JFrame {
         dialogo.setVisible(true);
     }
 
-    // ========== PANEL DE AUTOS ==========
+    // ========== PANEL DE AUTOS (MEJORADO CON FORMULARIO) ==========
     private JPanel crearPanelAutos() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -301,13 +387,7 @@ public class SistemaF1GUI extends JFrame {
             }
         };
 
-        for (Auto a : autos) {
-            modeloTabla.addRow(new Object[]{
-                a.getModelo(),
-                a.getMotor(),
-                a.getEscuderia().getEscuderia()
-            });
-        }
+        actualizarTablaAutos(modeloTabla);
 
         JTable tabla = new JTable(modeloTabla);
         tabla.setRowHeight(25);
@@ -315,7 +395,421 @@ public class SistemaF1GUI extends JFrame {
 
         panel.add(scrollPane, BorderLayout.CENTER);
 
+        // NUEVO: Panel de botones
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnAgregar = new JButton("+ Agregar Auto");
+        JButton btnActualizar = new JButton("[Actualizar]");
+
+        btnActualizar.addActionListener(e -> actualizarTablaAutos(modeloTabla));
+        btnAgregar.addActionListener(e -> {
+            mostrarDialogoAgregarAuto();
+            actualizarTablaAutos(modeloTabla);
+        });
+
+        panelBotones.add(btnAgregar);
+        panelBotones.add(btnActualizar);
+        panel.add(panelBotones, BorderLayout.SOUTH);
+
         return panel;
+    }
+
+    private void actualizarTablaAutos(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        for (Auto a : autos) {
+            modelo.addRow(new Object[]{
+                a.getModelo(),
+                a.getMotor(),
+                a.getEscuderia() != null ? a.getEscuderia().getEscuderia() : "Sin escudería"
+            });
+        }
+    }
+
+    private void mostrarDialogoAgregarAuto() {
+        JDialog dialogo = new JDialog(this, "Agregar Nuevo Auto", true);
+        dialogo.setSize(400, 250);
+        dialogo.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JTextField txtModelo = new JTextField();
+        JTextField txtMotor = new JTextField();
+        JComboBox<String> cbEscuderia = new JComboBox<>();
+        for (Escuderia e : escuderias) {
+            cbEscuderia.addItem(e.getEscuderia());
+        }
+
+        panel.add(new JLabel("Modelo:"));
+        panel.add(txtModelo);
+        panel.add(new JLabel("Motor:"));
+        panel.add(txtMotor);
+        panel.add(new JLabel("Escudería:"));
+        panel.add(cbEscuderia);
+
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnCancelar = new JButton("Cancelar");
+
+        btnGuardar.addActionListener(e -> {
+            if (txtModelo.getText().isEmpty() || txtMotor.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "Todos los campos son obligatorios",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Escuderia escuderiaSeleccionada = escuderias.get(cbEscuderia.getSelectedIndex());
+            Auto nuevoAuto = new Auto(txtModelo.getText(), txtMotor.getText(), escuderiaSeleccionada);
+            autos.add(nuevoAuto);
+            sistema.agregarAuto(nuevoAuto);
+            escuderiaSeleccionada.agregarAuto(nuevoAuto);
+
+            JOptionPane.showMessageDialog(dialogo, "Auto agregado exitosamente",
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            dialogo.dispose();
+        });
+
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+
+        panel.add(btnGuardar);
+        panel.add(btnCancelar);
+
+        dialogo.add(panel);
+        dialogo.setVisible(true);
+    }
+
+    // ========== PANEL DE ESCUDERÍAS (NUEVO) ==========
+    private JPanel crearPanelEscuderias() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titulo = new JLabel("Gestión de Escuderías", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+        panel.add(titulo, BorderLayout.NORTH);
+
+        String[] columnas = {"Nombre", "País", "Nº Autos"};
+        DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        actualizarTablaEscuderias(modeloTabla);
+
+        JTable tabla = new JTable(modeloTabla);
+        tabla.setRowHeight(25);
+        JScrollPane scrollPane = new JScrollPane(tabla);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnAgregar = new JButton("+ Agregar Escudería");
+        JButton btnActualizar = new JButton("[Actualizar]");
+
+        btnActualizar.addActionListener(e -> actualizarTablaEscuderias(modeloTabla));
+        btnAgregar.addActionListener(e -> {
+            mostrarDialogoAgregarEscuderia();
+            actualizarTablaEscuderias(modeloTabla);
+        });
+
+        panelBotones.add(btnAgregar);
+        panelBotones.add(btnActualizar);
+        panel.add(panelBotones, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void actualizarTablaEscuderias(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        for (Escuderia e : escuderias) {
+            int numAutos = 0;
+            for (Auto a : autos) {
+                if (a.getEscuderia() != null &&
+                    a.getEscuderia().getEscuderia().equals(e.getEscuderia())) {
+                    numAutos++;
+                }
+            }
+
+            modelo.addRow(new Object[]{
+                e.getEscuderia(),
+                e.getPais().getDescripcion(),
+                numAutos
+            });
+        }
+    }
+
+    private void mostrarDialogoAgregarEscuderia() {
+        JDialog dialogo = new JDialog(this, "Agregar Nueva Escudería", true);
+        dialogo.setSize(400, 200);
+        dialogo.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JTextField txtNombre = new JTextField();
+        JComboBox<String> cbPais = new JComboBox<>();
+        for (Pais p : paises) {
+            cbPais.addItem(p.getDescripcion());
+        }
+
+        panel.add(new JLabel("Nombre:"));
+        panel.add(txtNombre);
+        panel.add(new JLabel("País:"));
+        panel.add(cbPais);
+
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnCancelar = new JButton("Cancelar");
+
+        btnGuardar.addActionListener(e -> {
+            if (txtNombre.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El nombre es obligatorio",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Pais paisSeleccionado = paises.get(cbPais.getSelectedIndex());
+            Escuderia nuevaEscuderia = new Escuderia(txtNombre.getText(), paisSeleccionado);
+            escuderias.add(nuevaEscuderia);
+            sistema.agregarEscuderia(nuevaEscuderia);
+
+            JOptionPane.showMessageDialog(dialogo, "Escudería agregada exitosamente",
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            dialogo.dispose();
+        });
+
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+
+        panel.add(btnGuardar);
+        panel.add(btnCancelar);
+
+        dialogo.add(panel);
+        dialogo.setVisible(true);
+    }
+
+    // ========== PANEL DE MECÁNICOS (NUEVO) ==========
+    private JPanel crearPanelMecanicos() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titulo = new JLabel("Gestión de Mecánicos", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+        panel.add(titulo, BorderLayout.NORTH);
+
+        String[] columnas = {"DNI", "Nombre", "Apellido", "Especialidad", "Años Exp.", "País"};
+        DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        actualizarTablaMecanicos(modeloTabla);
+
+        JTable tabla = new JTable(modeloTabla);
+        tabla.setRowHeight(25);
+        JScrollPane scrollPane = new JScrollPane(tabla);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnAgregar = new JButton("+ Agregar Mecánico");
+        JButton btnActualizar = new JButton("[Actualizar]");
+
+        btnActualizar.addActionListener(e -> actualizarTablaMecanicos(modeloTabla));
+        btnAgregar.addActionListener(e -> {
+            mostrarDialogoAgregarMecanico();
+            actualizarTablaMecanicos(modeloTabla);
+        });
+
+        panelBotones.add(btnAgregar);
+        panelBotones.add(btnActualizar);
+        panel.add(panelBotones, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void actualizarTablaMecanicos(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        for (Mecanico m : mecanicos) {
+            modelo.addRow(new Object[]{
+                m.getDni(),
+                m.getNombre(),
+                m.getApellido(),
+                m.getEspecialidad(),
+                m.getAniosExperiencia(),
+                m.getPais().getDescripcion()
+            });
+        }
+    }
+
+    private void mostrarDialogoAgregarMecanico() {
+        JDialog dialogo = new JDialog(this, "Agregar Nuevo Mecánico", true);
+        dialogo.setSize(400, 350);
+        dialogo.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(new GridLayout(7, 2, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JTextField txtDni = new JTextField();
+        JTextField txtNombre = new JTextField();
+        JTextField txtApellido = new JTextField();
+        JComboBox<Especialidad> cbEspecialidad = new JComboBox<>(Especialidad.values());
+        JSpinner spinAnios = new JSpinner(new SpinnerNumberModel(0, 0, 50, 1));
+        JComboBox<String> cbPais = new JComboBox<>();
+        for (Pais p : paises) {
+            cbPais.addItem(p.getDescripcion());
+        }
+
+        panel.add(new JLabel("DNI:"));
+        panel.add(txtDni);
+        panel.add(new JLabel("Nombre:"));
+        panel.add(txtNombre);
+        panel.add(new JLabel("Apellido:"));
+        panel.add(txtApellido);
+        panel.add(new JLabel("Especialidad:"));
+        panel.add(cbEspecialidad);
+        panel.add(new JLabel("Años Exp.:"));
+        panel.add(spinAnios);
+        panel.add(new JLabel("País:"));
+        panel.add(cbPais);
+
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnCancelar = new JButton("Cancelar");
+
+        btnGuardar.addActionListener(e -> {
+            if (txtDni.getText().isEmpty() || txtNombre.getText().isEmpty() ||
+                txtApellido.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "Todos los campos son obligatorios",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Pais paisSeleccionado = paises.get(cbPais.getSelectedIndex());
+            Especialidad especialidad = (Especialidad) cbEspecialidad.getSelectedItem();
+            int anios = (Integer) spinAnios.getValue();
+
+            Mecanico nuevoMecanico = new Mecanico(anios, especialidad, txtDni.getText(),
+                txtNombre.getText(), txtApellido.getText(), paisSeleccionado);
+            mecanicos.add(nuevoMecanico);
+            sistema.agregarMecanico(nuevoMecanico);
+
+            JOptionPane.showMessageDialog(dialogo, "Mecánico agregado exitosamente",
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            dialogo.dispose();
+        });
+
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+
+        panel.add(btnGuardar);
+        panel.add(btnCancelar);
+
+        dialogo.add(panel);
+        dialogo.setVisible(true);
+    }
+
+    // ========== PANEL DE CIRCUITOS (NUEVO) ==========
+    private JPanel crearPanelCircuitos() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titulo = new JLabel("Gestión de Circuitos", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+        panel.add(titulo, BorderLayout.NORTH);
+
+        String[] columnas = {"Nombre", "Longitud (m)", "País"};
+        DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        actualizarTablaCircuitos(modeloTabla);
+
+        JTable tabla = new JTable(modeloTabla);
+        tabla.setRowHeight(25);
+        JScrollPane scrollPane = new JScrollPane(tabla);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnAgregar = new JButton("+ Agregar Circuito");
+        JButton btnActualizar = new JButton("[Actualizar]");
+
+        btnActualizar.addActionListener(e -> actualizarTablaCircuitos(modeloTabla));
+        btnAgregar.addActionListener(e -> {
+            mostrarDialogoAgregarCircuito();
+            actualizarTablaCircuitos(modeloTabla);
+        });
+
+        panelBotones.add(btnAgregar);
+        panelBotones.add(btnActualizar);
+        panel.add(panelBotones, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void actualizarTablaCircuitos(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        for (Circuito c : circuitos) {
+            modelo.addRow(new Object[]{
+                c.getnombre(),
+                c.getLongitud(),
+                c.getPais().getDescripcion()
+            });
+        }
+    }
+
+    private void mostrarDialogoAgregarCircuito() {
+        JDialog dialogo = new JDialog(this, "Agregar Nuevo Circuito", true);
+        dialogo.setSize(400, 250);
+        dialogo.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JTextField txtNombre = new JTextField();
+        JSpinner spinLongitud = new JSpinner(new SpinnerNumberModel(5000, 1000, 10000, 100));
+        JComboBox<String> cbPais = new JComboBox<>();
+        for (Pais p : paises) {
+            cbPais.addItem(p.getDescripcion());
+        }
+
+        panel.add(new JLabel("Nombre:"));
+        panel.add(txtNombre);
+        panel.add(new JLabel("Longitud (m):"));
+        panel.add(spinLongitud);
+        panel.add(new JLabel("País:"));
+        panel.add(cbPais);
+
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnCancelar = new JButton("Cancelar");
+
+        btnGuardar.addActionListener(e -> {
+            if (txtNombre.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El nombre es obligatorio",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Pais paisSeleccionado = paises.get(cbPais.getSelectedIndex());
+            int longitud = (Integer) spinLongitud.getValue();
+
+            Circuito nuevoCircuito = new Circuito(txtNombre.getText(), longitud, paisSeleccionado);
+            circuitos.add(nuevoCircuito);
+            sistema.agregarCircuito(nuevoCircuito);
+
+            JOptionPane.showMessageDialog(dialogo, "Circuito agregado exitosamente",
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            dialogo.dispose();
+        });
+
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+
+        panel.add(btnGuardar);
+        panel.add(btnCancelar);
+
+        dialogo.add(panel);
+        dialogo.setVisible(true);
     }
 
     // ========== PANEL DE CARRERAS ==========
@@ -327,7 +821,7 @@ public class SistemaF1GUI extends JFrame {
         titulo.setFont(new Font("Arial", Font.BOLD, 20));
         panel.add(titulo, BorderLayout.NORTH);
 
-        String[] columnas = {"Fecha", "Hora", "Circuito", "País", "Vueltas", "Participantes"};
+        String[] columnas = {"Nombre", "Fecha", "Hora", "Circuito", "Vueltas", "Participantes"};
         DefaultTableModel modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -346,7 +840,8 @@ public class SistemaF1GUI extends JFrame {
         // Panel de botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnCrear = new JButton("+ Crear Carrera");
-        JButton btnActualizar = new JButton("[Actualizar] Actualizar");
+        JButton btnInscribir = new JButton("+ Inscribir Piloto");
+        JButton btnActualizar = new JButton("[Actualizar]");
 
         btnActualizar.addActionListener(e -> actualizarTablaCarreras(modeloTabla));
 
@@ -355,7 +850,13 @@ public class SistemaF1GUI extends JFrame {
             actualizarTablaCarreras(modeloTabla);
         });
 
+        btnInscribir.addActionListener(e -> {
+            mostrarDialogoInscribirPiloto();
+            actualizarTablaCarreras(modeloTabla);
+        });
+
         panelBotones.add(btnCrear);
+        panelBotones.add(btnInscribir);
         panelBotones.add(btnActualizar);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
@@ -366,10 +867,10 @@ public class SistemaF1GUI extends JFrame {
         modelo.setRowCount(0);
         for (Carrera c : carreras) {
             modelo.addRow(new Object[]{
+                c.getNombre() != null ? c.getNombre() : "GP " + c.getCircuito().getnombre(),
                 c.getFechaRealizacion(),
                 c.getHoraRealizacion(),
                 c.getCircuito().getnombre(),
-                c.getCircuito().getPais().getDescripcion(),
                 c.getNumeroVueltas(),
                 c.getAutoPilotos().size()
             });
@@ -378,12 +879,13 @@ public class SistemaF1GUI extends JFrame {
 
     private void mostrarDialogoCrearCarrera() {
         JDialog dialogo = new JDialog(this, "Crear Nueva Carrera", true);
-        dialogo.setSize(500, 400);
+        dialogo.setSize(500, 450);
         dialogo.setLocationRelativeTo(this);
 
-        JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(7, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        JTextField txtNombre = new JTextField("GP Monaco 2024");
         JTextField txtFecha = new JTextField("2024-11-15");
         JTextField txtHora = new JTextField("15:00");
         JTextField txtVueltas = new JTextField("50");
@@ -392,6 +894,8 @@ public class SistemaF1GUI extends JFrame {
             cbCircuito.addItem(c.getnombre());
         }
 
+        panel.add(new JLabel("Nombre de la Carrera:"));
+        panel.add(txtNombre);
         panel.add(new JLabel("Fecha (YYYY-MM-DD):"));
         panel.add(txtFecha);
         panel.add(new JLabel("Hora (HH:MM):"));
@@ -406,13 +910,21 @@ public class SistemaF1GUI extends JFrame {
 
         btnCrear.addActionListener(e -> {
             try {
+                if (txtNombre.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(dialogo, "El nombre de la carrera es obligatorio", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 int vueltas = Integer.parseInt(txtVueltas.getText());
                 Circuito circuitoSeleccionado = circuitos.get(cbCircuito.getSelectedIndex());
 
-                Carrera nuevaCarrera = new Carrera(txtFecha.getText(), vueltas, txtHora.getText(), circuitoSeleccionado);
+                Carrera nuevaCarrera = new Carrera(txtNombre.getText(), txtFecha.getText(), vueltas, txtHora.getText(), circuitoSeleccionado);
                 carreras.add(nuevaCarrera);
                 sistema.agregarCarrera(nuevaCarrera);
                 circuitoSeleccionado.agregarCarrera(nuevaCarrera);
+
+                // Auto-guardar datos
+                autoGuardar();
 
                 JOptionPane.showMessageDialog(dialogo, "Carrera creada exitosamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 dialogo.dispose();
@@ -424,6 +936,94 @@ public class SistemaF1GUI extends JFrame {
         btnCancelar.addActionListener(e -> dialogo.dispose());
 
         panel.add(btnCrear);
+        panel.add(btnCancelar);
+
+        dialogo.add(panel);
+        dialogo.setVisible(true);
+    }
+
+    private void mostrarDialogoInscribirPiloto() {
+        if (carreras.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Primero debes crear al menos una carrera", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JDialog dialogo = new JDialog(this, "Inscribir Piloto a Carrera", true);
+        dialogo.setSize(500, 300);
+        dialogo.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Selección de carrera
+        JComboBox<String> cbCarrera = new JComboBox<>();
+        for (Carrera c : carreras) {
+            String nombreCarrera = c.getNombre() != null ? c.getNombre() : "GP " + c.getCircuito().getnombre();
+            cbCarrera.addItem(nombreCarrera);
+        }
+
+        // Selección de piloto
+        JComboBox<String> cbPiloto = new JComboBox<>();
+        for (Piloto p : pilotos) {
+            cbPiloto.addItem(p.getNombre() + " " + p.getApellido());
+        }
+
+        // Selección de auto
+        JComboBox<String> cbAuto = new JComboBox<>();
+        for (Auto a : autos) {
+            cbAuto.addItem(a.getModelo() + " (" + a.getEscuderia().getEscuderia() + ")");
+        }
+
+        // Fecha de asignación
+        JTextField txtFechaAsignacion = new JTextField(java.time.LocalDate.now().toString());
+
+        panel.add(new JLabel("Carrera:"));
+        panel.add(cbCarrera);
+        panel.add(new JLabel("Piloto:"));
+        panel.add(cbPiloto);
+        panel.add(new JLabel("Auto:"));
+        panel.add(cbAuto);
+        panel.add(new JLabel("Fecha Asignación:"));
+        panel.add(txtFechaAsignacion);
+
+        JButton btnInscribir = new JButton("Inscribir");
+        JButton btnCancelar = new JButton("Cancelar");
+
+        btnInscribir.addActionListener(e -> {
+            Carrera carreraSeleccionada = carreras.get(cbCarrera.getSelectedIndex());
+            Piloto pilotoSeleccionado = pilotos.get(cbPiloto.getSelectedIndex());
+            Auto autoSeleccionado = autos.get(cbAuto.getSelectedIndex());
+
+            // Verificar si el piloto ya está inscrito
+            boolean yaInscrito = false;
+            for (AutoPiloto ap : carreraSeleccionada.getAutoPilotos()) {
+                if (ap.getPiloto().equals(pilotoSeleccionado)) {
+                    yaInscrito = true;
+                    break;
+                }
+            }
+
+            if (yaInscrito) {
+                JOptionPane.showMessageDialog(dialogo, "El piloto ya está inscrito en esta carrera", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Inscribir piloto
+            carreraSeleccionada.agregarAutoPiloto(txtFechaAsignacion.getText(), autoSeleccionado, pilotoSeleccionado);
+
+            // Auto-guardar datos
+            autoGuardar();
+
+            JOptionPane.showMessageDialog(dialogo,
+                pilotoSeleccionado.getNombre() + " " + pilotoSeleccionado.getApellido() +
+                " inscrito exitosamente en " + (carreraSeleccionada.getNombre() != null ? carreraSeleccionada.getNombre() : "la carrera"),
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            dialogo.dispose();
+        });
+
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+
+        panel.add(btnInscribir);
         panel.add(btnCancelar);
 
         dialogo.add(panel);
@@ -451,12 +1051,29 @@ public class SistemaF1GUI extends JFrame {
         JComboBox<String> cbCarrera = new JComboBox<>();
         cbCarrera.addItem("-- Seleccione una carrera --");
         for (Carrera c : carreras) {
-            cbCarrera.addItem(c.getCircuito().getnombre() + " - " + c.getFechaRealizacion());
+            String nombreCarrera = c.getNombre() != null ? c.getNombre() : "GP " + c.getCircuito().getnombre();
+            cbCarrera.addItem(nombreCarrera + " - " + c.getFechaRealizacion());
         }
         gbc.gridx = 1; gbc.gridy = 0;
         gbc.gridwidth = 2;
         panelFormulario.add(cbCarrera, gbc);
         gbc.gridwidth = 1;
+
+        // Botón actualizar lista de carreras
+        JButton btnActualizarLista = new JButton("[Actualizar]");
+        gbc.gridx = 3; gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        panelFormulario.add(btnActualizarLista, gbc);
+
+        btnActualizarLista.addActionListener(e -> {
+            cbCarrera.removeAllItems();
+            cbCarrera.addItem("-- Seleccione una carrera --");
+            for (Carrera c : carreras) {
+                String nombreCarrera = c.getNombre() != null ? c.getNombre() : "GP " + c.getCircuito().getnombre();
+                cbCarrera.addItem(nombreCarrera + " - " + c.getFechaRealizacion());
+            }
+            JOptionPane.showMessageDialog(this, "Lista de carreras actualizada", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        });
 
         // Selección de piloto
         gbc.gridx = 0; gbc.gridy = 1;
@@ -734,6 +1351,61 @@ public class SistemaF1GUI extends JFrame {
         panel.add(panelBotones, BorderLayout.SOUTH);
 
         return panel;
+    }
+
+    // ========== MÉTODOS DE PERSISTENCIA ==========
+
+    /**
+     * Guarda todos los datos del sistema en archivos
+     */
+    private void guardarDatos() {
+        try {
+            DataPersistence.guardarTodo(paises, escuderias, pilotos, autos, circuitos, carreras, mecanicos);
+            JOptionPane.showMessageDialog(this,
+                "Datos guardados exitosamente en la carpeta 'data'",
+                "Guardado Exitoso", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                "Error al guardar los datos:\n" + e.getMessage(),
+                "Error de Guardado", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Recarga los datos desde archivos
+     */
+    private void recargarDatos() {
+        try {
+            paises = DataPersistence.cargarPaises();
+            escuderias = DataPersistence.cargarEscuderias();
+            pilotos = DataPersistence.cargarPilotos();
+            autos = DataPersistence.cargarAutos();
+            circuitos = DataPersistence.cargarCircuitos();
+            carreras = DataPersistence.cargarCarreras();
+            mecanicos = DataPersistence.cargarMecanicos();
+
+            sistema = new Registros(autos, mecanicos, pilotos, circuitos, escuderias, paises);
+
+            JOptionPane.showMessageDialog(this,
+                "Datos recargados exitosamente.\nPor favor reinicie la aplicación para ver todos los cambios.",
+                "Recarga Exitosa", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar los datos:\n" + e.getMessage(),
+                "Error de Carga", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Guarda automáticamente sin mostrar mensaje (para auto-save)
+     */
+    private void autoGuardar() {
+        try {
+            DataPersistence.guardarTodo(paises, escuderias, pilotos, autos, circuitos, carreras, mecanicos);
+            System.out.println("Auto-guardado exitoso");
+        } catch (IOException e) {
+            System.err.println("Error en auto-guardado: " + e.getMessage());
+        }
     }
 
     public static void main(String[] args) {

@@ -2,7 +2,8 @@
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 
 import java.util.ArrayList;
-public class AutoPiloto {
+import java.io.Serializable;
+public class AutoPiloto implements Serializable {
     private String fechaAsignacion;
     private ArrayList<Carrera> carreras= new ArrayList<>();//permite manejar las carreras en las que participó esa combinación de auto y piloto.
     private Auto auto;

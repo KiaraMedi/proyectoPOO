@@ -1,8 +1,9 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class Piloto extends Persona {
+public class Piloto extends Persona implements Serializable {
     private int numeroCompetencia;
     private int victorias;
     private int polePosition;

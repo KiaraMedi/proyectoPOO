@@ -1,8 +1,9 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class Mecanico extends Persona {
+public class Mecanico extends Persona implements Serializable {
     private Especialidad especialidad;
     private int aniosExperiencia;
      private ArrayList<Escuderia> escuderias=new ArrayList<>();//guarda todas las escuderias donde trabaja ese mecanico

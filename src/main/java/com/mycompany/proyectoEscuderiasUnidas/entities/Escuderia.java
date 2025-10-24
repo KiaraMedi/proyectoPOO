@@ -1,7 +1,8 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
-public class Escuderia {
+import java.io.Serializable;
+public class Escuderia implements Serializable {
     private String nombre;
     private Pais pais;
     private ArrayList<Auto> autos=new ArrayList<>();

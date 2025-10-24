@@ -1,7 +1,9 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 
-public class ResultadoCarrera {
+import java.io.Serializable;
+
+public class ResultadoCarrera implements Serializable {
     private Carrera carrera;
     private AutoPiloto autoPiloto;
     private int posicion;

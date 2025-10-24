@@ -1,8 +1,9 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
+import java.io.Serializable;
 
 
-public class PilotoEscuderia {
+public class PilotoEscuderia implements Serializable {
    private String desdeFecha; 
    private String hastaFecha;
    private Escuderia escuderia;

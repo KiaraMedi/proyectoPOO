@@ -2,8 +2,9 @@
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class Auto {
+public class Auto implements Serializable {
     private String modelo;
     private String motor;
     private Escuderia escuderia;

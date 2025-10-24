@@ -1,25 +1,41 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class Carrera {
+public class Carrera implements Serializable {
+    private String nombre;  // Nombre de la carrera (ej: "GP de Mónaco 2024")
     private String fechaRealizacion;
     private int numeroVueltas;
     private String horaRealizacion;
     private Circuito circuito;
     private ArrayList<AutoPiloto> autosPilotos=new ArrayList<>();//Permite representar la participación de múltiples combinaciones de auto y piloto en una carrera.
     private ArrayList<ResultadoCarrera> resultados=new ArrayList<>();//Resultados de la carrera
-    
+
     //constructores//
-     public Carrera(String fechaRealizacion,int numeroVueltas, String horaRealizacion, Circuito circuito ){
+     public Carrera(String nombre, String fechaRealizacion,int numeroVueltas, String horaRealizacion, Circuito circuito ){
+         this.nombre=nombre;
          this.fechaRealizacion=fechaRealizacion;
          this.numeroVueltas=numeroVueltas;
          this.horaRealizacion=horaRealizacion;
          this.circuito=circuito;
      }
+
+     // Constructor antiguo para compatibilidad (usa nombre del circuito)
+     public Carrera(String fechaRealizacion,int numeroVueltas, String horaRealizacion, Circuito circuito ){
+         this.nombre = "GP " + circuito.getnombre();
+         this.fechaRealizacion=fechaRealizacion;
+         this.numeroVueltas=numeroVueltas;
+         this.horaRealizacion=horaRealizacion;
+         this.circuito=circuito;
+     }
+
      public Carrera(){ }
     
  //setters y getters//
+    public void setNombre(String nombre){
+        this.nombre = nombre;
+    }
     public void setFechaRealizacoin(String fechaRealizacion){
         this.fechaRealizacion= fechaRealizacion;
     }
@@ -32,7 +48,10 @@ public class Carrera {
     public void setCircuito(Circuito circuito){
         this.circuito=circuito;
     }
-    
+
+    public String getNombre(){
+        return nombre;
+    }
     public String getFechaRealizacion(){
         return fechaRealizacion;
     }

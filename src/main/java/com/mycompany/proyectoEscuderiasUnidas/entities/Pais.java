@@ -1,7 +1,8 @@
 
 package com.mycompany.proyectoEscuderiasUnidas.entities;
 import java.util.ArrayList;
-public class Pais {
+import java.io.Serializable;
+public class Pais implements Serializable {
     private int id;
     private String descripcion;
     private ArrayList<Persona> personas= new ArrayList<>();//guarda todas las personas asociadas a ese país.

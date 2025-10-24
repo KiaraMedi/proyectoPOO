@@ -6,7 +6,7 @@ Sistema completo de gestión para competencias de Fórmula 1, desarrollado en Ja
 
 **Versión:** v2.2
 **Autor:** Proyecto POO - Universidad
-**Fecha:** Octubre 2024
+**Fecha:** Octubre 2025
 
 ---
 
@@ -105,8 +105,8 @@ java com.mycompany.proyectoEscuderiasUnidas.ProyectoPOO
 2. Ve a la pestaña **"Carreras"**
 3. Click en **"+ Crear Carrera"**
 4. Llena el formulario:
-   - **Nombre:** GP Monaco 2024
-   - **Fecha:** 2024-12-01
+   - **Nombre:** GP Monaco 2025
+   - **Fecha:** 2025-12-01
    - **Hora:** 15:00
    - **Circuito:** (selecciona del combo)
    - **Vueltas:** 78
@@ -117,7 +117,7 @@ java com.mycompany.proyectoEscuderiasUnidas.ProyectoPOO
 1. En pestaña **"Carreras"**
 2. Click en **"+ Inscribir Piloto"**
 3. Selecciona:
-   - **Carrera:** GP Monaco 2024
+   - **Carrera:** GP Monaco 2025
    - **Piloto:** Lewis Hamilton
    - **Auto:** W15 (Mercedes AMG)
 4. Click **"Inscribir"**
@@ -127,7 +127,7 @@ java com.mycompany.proyectoEscuderiasUnidas.ProyectoPOO
 1. Ve a pestaña **"Resultados"**
 2. Click en **"[Actualizar]"** si no aparece tu carrera
 3. Selecciona:
-   - **Carrera:** GP Monaco 2024
+   - **Carrera:** GP Monaco 2025
    - **Piloto:** Lewis Hamilton
    - **Posición:** 1
    - **Vuelta Rápida:** (marca si aplica)
@@ -150,7 +150,7 @@ java com.mycompany.proyectoEscuderiasUnidas.ProyectoPOO
 
 ## Sistema de Puntos F1
 
-El sistema implementa el reglamento oficial de F1 2024:
+El sistema implementa el reglamento oficial de F1 2025:
 
 | Posición | Puntos |
 |----------|--------|
